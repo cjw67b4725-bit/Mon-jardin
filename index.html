@@ -638,6 +638,17 @@
 </div>
 
 <!-- SPLASH SCREEN -->
+<script>
+// Fallback IMMÉDIAT - indépendant de tout le reste
+window.addEventListener('DOMContentLoaded', function() {
+  setTimeout(function() {
+    var s = document.getElementById('splash');
+    if (s) { s.style.opacity='0'; s.style.transition='opacity 0.5s'; setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); }, 500); }
+    var ls = document.getElementById('login-screen');
+    if (ls && !window._currentUser) ls.style.display = 'block';
+  }, 3000);
+});
+</script>
 <div id="splash">
   <div class="splash-leaves">
     <span class="splash-leaf" style="top:5%;left:5%;animation-delay:0s;font-size:5rem">🌴</span>
