@@ -1,0 +1,1890 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mon Jardin</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Mon Jardin">
+<meta name="theme-color" content="#2d5a27">
+<link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAYAAAA9zQYyAAAD80lEQVR4nO3SUW4bORREUe0mX7OhrDjLyQ4maCAJjBnZltVNFVk8Bdw/G2g9ntttwf3z/du/ek3pt15+6QcU9KeWfgwBfnrpgwvuS5Y+rsC+ZOljap7SFk8tfTzNW9rml5Y+ltYpbfXTpQ+k9Uqbvbv0UbR+acN/lz6EekpbhlmXB7Pqgll1way6YFZdMKsumFUXzKoLaFUFs+qCWXUBrapgVl1AqyqYVRfQqgpm1QW0qoJZdQGtqoBWVTCrLqBVFdCqCmhVBbPqAlpVAa2qgFZVQA/oWPobdg3oJ7pi6d/QGtAPNnLp39YU0B+UWPo3rx7Qd5ph6RusGsxvmnHHd/34+SN+m1UC+nfpHWifLX27mdoedHpnIIMN9DSYr4QMNtCVkMHeFHQ75J1hbwd6N8y7od4K9K6Yd0K9DejdMe+CegvQMO+DGujNMLejrgedWBor0KXBvB9qoIGuqhY0zHuiBhroqipBw7wvaqCBjr8X0JOBToOEuhh0YmmMQAMNNNBrBDTQ8Y9YGTPQcwU00EDPGtBAAw1zFWqgoa7BDDTQQM8c0EADDTTQM5bcPSDP/h/QQMdRAz1PQF8woOcJ6Iu2Muj0uwENNNBAj9+KoNNvBjTQQAP9uq0EOv1eQAMN9E6gZ0L96N/BDDTQQAM942AGugo1zEADDTPQsw5moKtQwww00CDvCXoF1CADXQX62JWQj6Vvnq4a9Cqoj52FfCx96xmqB70S6vf2Fu17S994loAuWfrGs7QF6HbU6dvO1DagW1GnbzpbW4FuQ52+5YxtB/qoYekbztqWoI9WXvp2M7ct6KMVl77Z7G0N+milpW+1QtuD/tPMS99mpYB+04xL32S1gL7TDEvfYNWA/iCQ1wvoB4N4jYB+IpDnDegBAZ0L6EEBnQnoQQGdCehBAZ0J6EEBnQnoQQGdCehBAZ0J6EEBnQnoQQGdCehBAZ0J6EEBnQnoQQGdCehBAZ0J6EEBnQnoQQGdCehBAZ0JaFUFtKoCWlUBraqAVlVAqyqgVRXQqgpoVQW0qrodS3+EdFVAqyqgVRXQqgpoVQW0qgJaVQGtqoBWVbc/S3+IdLbb26U/Rjob0KoKaFV1++/SHyQ92/8wA62VA1pV3QUNtVbsXcxAa8U+BA21VupTzEBrpR4CDbVW6GHMQGuFvgQaas3clzEDrZl7CjTUmrGnMUOt2TqNGWjN1CWgodYMXYYZaqW7HDPUSjUMM9R6dcMxQ61X9TLMUGt0L8cMtUYVwwy1ri5t+e/Sh9D6pQ3fXfooWq+02U+XPpDWKW31S0sfS/OWtnlq6eNpntIWL136mAJ5yNLHFcjDlj64IB669GNobcC/AOjLKHGCnxNDAAAAAElFTkSuQmCC">
+
+<!-- FIREBASE -->
+<script type="module">
+  import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+  import { getAuth, GoogleAuthProvider, signInWithRedirect, getRedirectResult, signOut, onAuthStateChanged }
+    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+  import { getFirestore, doc, setDoc, getDoc }
+    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyB1lBhKlnNZJyJRGknxdaNK_-WceWTxtCI",
+    authDomain: "mon-jardin-e78fd.firebaseapp.com",
+    projectId: "mon-jardin-e78fd",
+    storageBucket: "mon-jardin-e78fd.firebasestorage.app",
+    messagingSenderId: "623879857275",
+    appId: "1:623879857275:web:3e0f99ab4a1b625c586ede"
+  };
+
+  try {
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const provider = new GoogleAuthProvider();
+
+    // Fonctions Firebase exposées globalement
+    window.fbConnecterGoogle = async () => {
+      try {
+        const errEl = document.getElementById('login-error');
+        if (errEl) errEl.textContent = 'Redirection vers Google...';
+        await signInWithRedirect(auth, provider);
+      } catch(e) {
+        const errEl = document.getElementById('login-error');
+        if (errEl) errEl.textContent = 'Erreur : ' + e.message;
+      }
+    };
+
+    window.fbDeconnecter = async () => {
+      await signOut(auth);
+    };
+
+    window.fbSauvegarder = async (userId, data) => {
+      try {
+        await setDoc(doc(db, 'users', userId), data);
+        return true;
+      } catch(e) {
+        console.error('Erreur sauvegarde:', e);
+        return false;
+      }
+    };
+
+    window.fbCharger = async (userId) => {
+      try {
+        const snap = await getDoc(doc(db, 'users', userId));
+        return snap.exists() ? snap.data() : null;
+      } catch(e) {
+        console.error('Erreur chargement:', e);
+        return null;
+      }
+    };
+
+    // Gérer le retour après redirection Google
+    getRedirectResult(auth).then(result => {
+      if (result?.user) console.log('Connexion redirect OK:', result.user.displayName);
+    }).catch(e => {
+      console.error('Erreur redirect result:', e.message);
+      const errEl = document.getElementById('login-error');
+      if (errEl && e.code !== 'auth/no-current-user') errEl.textContent = 'Erreur connexion : ' + e.message;
+    });
+
+    // Observer l'état de connexion
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        window._currentUser = user;
+
+        // Masquer login, afficher app
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) loginScreen.style.display = 'none';
+
+        // User bar
+        const userBar = document.getElementById('user-bar');
+        if (userBar) userBar.style.display = 'flex';
+        const userName = document.getElementById('user-name');
+        if (userName) userName.textContent = user.displayName || user.email;
+        const avatar = document.getElementById('user-avatar');
+        if (avatar && user.photoURL) { avatar.src = user.photoURL; avatar.style.display = 'block'; }
+
+        // Charger données Firebase
+        const data = await window.fbCharger(user.uid);
+        if (data?.plantes) {
+          window._plantesFromFirebase = data.plantes;
+          window._capteursFromFirebase = data.capteurs || {};
+        }
+
+        // Signaler que Firebase est prêt
+        window._firebaseReady = true;
+        if (window._onFirebaseReady) window._onFirebaseReady(user);
+
+      } else {
+        window._currentUser = null;
+        window._firebaseReady = false;
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) { loginScreen.style.display = 'block'; loginScreen.style.opacity = '1'; }
+        const userBar = document.getElementById('user-bar');
+        if (userBar) userBar.style.display = 'none';
+        if (window._onFirebaseSignOut) window._onFirebaseSignOut();
+      }
+    });
+
+    window._firebaseLoaded = true;
+    console.log('Firebase initialisé avec succès');
+    if(window.dbg) window.dbg('🔥 Firebase module chargé');
+
+  } catch(e) {
+    console.error('Erreur init Firebase:', e);
+    window._firebaseLoaded = false;
+    window._firebaseError = e.message;
+    if(window.dbg) window.dbg('❌ Firebase erreur: ' + e.message);
+  }
+</script>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --vert: #2d5a27;
+    --vert-clair: #4a8c42;
+    --vert-pale: #e8f5e4;
+    --terre: #8b5e3c;
+    --creme: #faf6f0;
+    --gris: #6b7280;
+    --rouge: #c0392b;
+    --orange: #e67e22;
+    --bleu: #2980b9;
+    --violet: #7c3aed;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'DM Sans', sans-serif; background: var(--creme); min-height: 100vh; color: #1a1a1a; }
+
+  /* NAV TABS */
+  .nav-tabs {
+    background: var(--vert);
+    display: flex;
+    border-top: 1px solid rgba(255,255,255,0.1);
+  }
+  .nav-tab {
+    flex: 1; padding: 10px 4px 8px; color: rgba(255,255,255,0.6);
+    font-size: 0.7rem; text-align: center; cursor: pointer;
+    border: none; background: none; font-family: 'DM Sans', sans-serif;
+    transition: color 0.2s;
+  }
+  .nav-tab.active { color: white; border-bottom: 2px solid #a8e6a0; }
+  .nav-tab .tab-icon { font-size: 1.2rem; display: block; margin-bottom: 2px; }
+
+  header {
+    background: var(--vert); color: white;
+    padding: 20px 16px 0;
+    position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+  }
+  header h1 { font-family: 'Playfair Display', serif; font-size: 1.6rem; }
+  header p { font-size: 0.8rem; opacity: 0.8; margin-top: 2px; margin-bottom: 10px; }
+
+  .meteo-bar {
+    background: var(--vert-clair); color: white;
+    padding: 8px 16px; display: flex; align-items: center;
+    gap: 16px; font-size: 0.82rem; flex-wrap: wrap;
+  }
+  .meteo-item { display: flex; align-items: center; gap: 5px; }
+  .meteo-item span.label { opacity: 0.8; }
+
+  .alerte-gel {
+    background: #fff0f0; border-left: 3px solid var(--rouge);
+    border-radius: 8px; padding: 10px 12px; font-size: 0.82rem;
+    color: #7a1a1a; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .alerte-pluie {
+    background: #e0f0ff; border-left: 3px solid var(--bleu);
+    border-radius: 8px; padding: 10px 12px; font-size: 0.82rem;
+    color: #1a4a6b; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .alerte-adaptation {
+    background: #fef3c7; border-left: 3px solid var(--orange);
+    border-radius: 8px; padding: 6px 10px; font-size: 0.78rem;
+    color: #78400a; margin-bottom: 8px;
+  }
+
+  .main { padding: 16px; max-width: 600px; margin: 0 auto; }
+  .page { display: none; }
+  .page.active { display: block; }
+
+  .section-title {
+    font-family: 'Playfair Display', serif; font-size: 1.1rem;
+    color: var(--vert); margin: 20px 0 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::after { content: ''; flex: 1; height: 1px; background: #d1e8cb; }
+
+  /* PLANT CARDS */
+  .plant-card {
+    background: white; border-radius: 16px; margin-bottom: 12px;
+    overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid #e8f0e4; transition: transform 0.15s;
+  }
+  .plant-card.en-adaptation { border-color: #f59e0b; }
+  .plant-card:active { transform: scale(0.98); }
+
+  .card-header {
+    display: flex; align-items: center;
+    padding: 14px 16px; gap: 12px; cursor: pointer;
+  }
+  .plant-emoji {
+    font-size: 2rem; width: 48px; height: 48px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--vert-pale); border-radius: 12px; flex-shrink: 0;
+  }
+  .plant-info { flex: 1; min-width: 0; }
+  .plant-name { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600; }
+  .plant-latin { font-size: 0.72rem; color: var(--gris); font-style: italic; margin-top: 1px; }
+  .plant-location { font-size: 0.75rem; color: var(--gris); margin-top: 3px; }
+  .adaptation-tag { font-size: 0.7rem; color: #92400e; background: #fef3c7; padding: 2px 6px; border-radius: 8px; display: inline-block; margin-top: 3px; }
+
+  .arrosage-badge { display: flex; flex-direction: column; align-items: center; min-width: 64px; }
+  .badge { padding: 5px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 500; text-align: center; white-space: nowrap; }
+  .badge.arroser { background: #dbeafe; color: #1d4ed8; }
+  .badge.ok { background: #dcfce7; color: #166534; }
+  .badge.surveiller { background: #fef3c7; color: #92400e; }
+  .badge.adaptation { background: #fde68a; color: #78400a; }
+  .litres { font-size: 0.7rem; color: var(--gris); margin-top: 3px; text-align: center; }
+
+  .card-body { display: none; padding: 0 16px 14px; border-top: 1px solid #f0f4ee; }
+  .card-body.open { display: block; }
+  .card-body p { font-size: 0.82rem; color: #444; line-height: 1.5; margin: 10px 0; }
+
+  .card-actions { display: flex; gap: 8px; margin-bottom: 10px; }
+  .btn-arrose {
+    flex: 1; padding: 10px; background: var(--vert); color: white;
+    border: none; border-radius: 10px; font-size: 0.85rem;
+    font-family: 'DM Sans', sans-serif; font-weight: 500;
+    cursor: pointer; display: flex; align-items: center;
+    justify-content: center; gap: 6px; transition: background 0.2s;
+  }
+  .btn-arrose:hover { background: var(--vert-clair); }
+  .btn-edit {
+    padding: 10px 14px; background: #f0f4ee; color: var(--vert);
+    border: none; border-radius: 10px; font-size: 0.85rem;
+    font-family: 'DM Sans', sans-serif; cursor: pointer;
+  }
+  .btn-journal {
+    padding: 10px 14px; background: #e8f0ff; color: #1d4ed8;
+    border: none; border-radius: 10px; font-size: 0.85rem;
+    font-family: 'DM Sans', sans-serif; cursor: pointer;
+  }
+  .last-water { font-size: 0.75rem; color: var(--gris); text-align: center; margin: 6px 0; }
+
+  /* JOURNAL */
+  .journal-section { margin-top: 10px; }
+  .journal-section h4 { font-size: 0.78rem; color: var(--gris); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .journal-entry {
+    font-size: 0.78rem; color: #333; padding: 6px 8px;
+    background: #f8faf7; border-radius: 6px; margin-bottom: 4px;
+  }
+  .journal-entry .je-date { color: var(--gris); font-size: 0.7rem; }
+  .journal-entry .je-type { font-size: 0.7rem; padding: 1px 6px; border-radius: 8px; display: inline-block; margin-right: 4px; }
+  .je-type.arrosage { background: #dbeafe; color: #1d4ed8; }
+  .je-type.observation { background: #f3e8ff; color: #6b21a8; }
+  .je-type.taille { background: #fce7f3; color: #9d174d; }
+  .je-type.rempotage { background: #fef3c7; color: #92400e; }
+  .je-type.traitement { background: #fee2e2; color: #991b1b; }
+  .je-type.engrais { background: #dcfce7; color: #166534; }
+
+  /* CALENDRIER */
+  .cal-month { margin-bottom: 16px; }
+  .cal-month-title { font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--vert); margin-bottom: 8px; }
+  .cal-event {
+    display: flex; gap: 10px; align-items: flex-start;
+    padding: 8px 10px; background: white; border-radius: 10px;
+    margin-bottom: 6px; border-left: 3px solid var(--vert-clair);
+    font-size: 0.82rem;
+  }
+  .cal-event.passé { opacity: 0.5; }
+  .cal-event.maintenant { border-left-color: var(--orange); background: #fff8f0; }
+  .cal-event.urgent { border-left-color: var(--rouge); background: #fff0f0; }
+  .cal-event-plante { font-weight: 500; }
+  .cal-event-desc { color: #555; font-size: 0.78rem; }
+  .cal-event-emoji { font-size: 1.1rem; flex-shrink: 0; }
+
+  /* FAB */
+  .fab {
+    position: fixed; bottom: 80px; right: 20px;
+    width: 56px; height: 56px; background: var(--vert);
+    color: white; border-radius: 50%; border: none; font-size: 1.6rem;
+    cursor: pointer; box-shadow: 0 4px 16px rgba(45,90,39,0.4);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 200; transition: transform 0.2s, background 0.2s;
+  }
+  .fab:hover { background: var(--vert-clair); transform: scale(1.05); }
+
+  /* MODALS */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.5); z-index: 300; align-items: flex-end;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white; width: 100%; border-radius: 20px 20px 0 0;
+    padding: 24px 20px 40px; max-height: 88vh; overflow-y: auto;
+  }
+  .modal h2 { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--vert); margin-bottom: 20px; }
+  .form-group { margin-bottom: 14px; }
+  .form-group label { display: block; font-size: 0.8rem; color: var(--gris); margin-bottom: 5px; font-weight: 500; }
+  .form-group input, .form-group select, .form-group textarea {
+    width: 100%; padding: 10px 12px; border: 1px solid #d1e8cb;
+    border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+    background: var(--creme); color: #1a1a1a; outline: none;
+  }
+  .form-group textarea { resize: vertical; min-height: 60px; }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: var(--vert-clair); background: white; }
+  .form-row { display: flex; gap: 10px; }
+  .form-row .form-group { flex: 1; }
+  .btn-submit {
+    width: 100%; padding: 12px; background: var(--vert); color: white;
+    border: none; border-radius: 12px; font-size: 0.95rem;
+    font-family: 'DM Sans', sans-serif; font-weight: 500; cursor: pointer; margin-top: 8px;
+  }
+  .btn-cancel {
+    width: 100%; padding: 10px; background: transparent; color: var(--gris);
+    border: 1px solid #e0e0e0; border-radius: 12px; font-size: 0.9rem;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 8px;
+  }
+  .btn-danger {
+    width: 100%; padding: 10px; background: #fee2e2; color: var(--rouge);
+    border: none; border-radius: 12px; font-size: 0.9rem;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; margin-top: 8px;
+  }
+
+
+  /* CAPTEURS */
+  .capteur-bar {
+    margin: 8px 0 4px;
+    background: #f0f4ee;
+    border-radius: 8px;
+    overflow: hidden;
+    height: 8px;
+  }
+  .capteur-fill {
+    height: 100%;
+    border-radius: 8px;
+    transition: width 0.5s ease;
+  }
+  .capteur-fill.sec { background: #f87171; }
+  .capteur-fill.moyen { background: #fbbf24; }
+  .capteur-fill.bon { background: #4ade80; }
+  .capteur-fill.trop { background: #60a5fa; }
+  .capteur-info {
+    display: flex; justify-content: space-between;
+    font-size: 0.72rem; color: var(--gris); margin-bottom: 6px;
+  }
+  .capteur-valeur { font-weight: 500; }
+  .capteur-statut.sec { color: var(--rouge); }
+  .capteur-statut.moyen { color: var(--orange); }
+  .capteur-statut.bon { color: var(--vert-clair); }
+  .capteur-statut.trop { color: var(--bleu); }
+  .capteur-simulé { font-size: 0.7rem; color: var(--gris); font-style: italic; }
+  .btn-simuler {
+    padding: 6px 10px; background: #f0f4ee; color: var(--vert);
+    border: 1px dashed #a0c49a; border-radius: 8px; font-size: 0.78rem;
+    font-family: 'DM Sans', sans-serif; cursor: pointer; margin-bottom: 8px;
+    width: 100%; text-align: center;
+  }
+
+  /* PAGE CAPTEURS */
+  .capteur-card {
+    background: white; border-radius: 16px; margin-bottom: 12px;
+    padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    border: 1px solid #e8f0e4;
+  }
+  .capteur-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .capteur-nom { font-family: 'Playfair Display', serif; font-size: 0.95rem; font-weight: 600; }
+  .capteur-id { font-size: 0.72rem; color: var(--gris); font-family: monospace; }
+  .capteur-badge-simulé { font-size: 0.7rem; background: #fef3c7; color: #92400e; padding: 2px 8px; border-radius: 10px; }
+  .capteur-badge-actif { font-size: 0.7rem; background: #dcfce7; color: #166534; padding: 2px 8px; border-radius: 10px; }
+  .capteur-plante-liee { font-size: 0.8rem; color: #555; margin-top: 4px; }
+  .seuils-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .seuil-item { background: #f8faf7; border-radius: 8px; padding: 8px; text-align: center; }
+  .seuil-label { font-size: 0.7rem; color: var(--gris); }
+  .seuil-val { font-size: 0.9rem; font-weight: 500; color: var(--vert); }
+
+
+  /* PHOTOS */
+  .plant-photo {
+    width: 48px; height: 48px;
+    border-radius: 12px; object-fit: cover;
+    flex-shrink: 0; cursor: pointer;
+  }
+  .plant-photo-placeholder {
+    width: 48px; height: 48px;
+    border-radius: 12px; background: var(--vert-pale);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2rem; flex-shrink: 0; cursor: pointer;
+    position: relative;
+  }
+  .plant-photo-placeholder::after {
+    content: '📷';
+    font-size: 0.65rem;
+    position: absolute;
+    bottom: 2px; right: 2px;
+    background: white; border-radius: 50%;
+    width: 16px; height: 16px;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 16px; text-align: center;
+  }
+  .photo-input { display: none; }
+
+  .photo-label {
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px; width: 100%; padding: 10px;
+    background: #f0f4ee; color: var(--vert);
+    border: 1.5px dashed #a0c49a; border-radius: 10px;
+    font-size: 0.85rem; font-family: 'DM Sans', sans-serif;
+    cursor: pointer; margin-bottom: 10px;
+  }
+  .photo-preview-container {
+    display: flex; align-items: center; gap: 12px;
+    margin-bottom: 10px;
+  }
+  .photo-preview {
+    width: 64px; height: 64px; border-radius: 12px;
+    object-fit: cover; border: 2px solid #d1e8cb;
+  }
+  .photo-preview-placeholder {
+    width: 64px; height: 64px; border-radius: 12px;
+    background: var(--vert-pale); display: flex;
+    align-items: center; justify-content: center; font-size: 2rem;
+  }
+  .btn-suppr-photo {
+    font-size: 0.78rem; color: var(--rouge); background: none;
+    border: none; cursor: pointer; text-decoration: underline;
+  }
+
+
+  /* SPLASH SCREEN */
+  #splash {
+    position: fixed; inset: 0; z-index: 9999;
+    background: linear-gradient(160deg, #1a3d0f 0%, #2d5a27 40%, #1a4a1a 100%);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    transition: opacity 0.8s ease;
+  }
+  #splash.fade-out { opacity: 0; pointer-events: none; }
+  .splash-leaves {
+    position: absolute; inset: 0; overflow: hidden;
+  }
+  .splash-leaf {
+    position: absolute; font-size: 4rem; opacity: 0.15;
+    animation: sway 3s ease-in-out infinite;
+  }
+  @keyframes sway {
+    0%, 100% { transform: rotate(-5deg) scale(1); }
+    50% { transform: rotate(5deg) scale(1.05); }
+  }
+  .splash-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.4rem; color: white;
+    text-shadow: 0 2px 20px rgba(0,0,0,0.4);
+    z-index: 1; text-align: center;
+    animation: fadeUp 1s ease forwards;
+  }
+  .splash-subtitle {
+    font-size: 0.9rem; color: rgba(255,255,255,0.7);
+    margin-top: 8px; z-index: 1;
+    animation: fadeUp 1s ease 0.3s forwards; opacity: 0;
+  }
+  .splash-icon {
+    font-size: 4rem; margin-bottom: 16px; z-index: 1;
+    animation: fadeUp 1s ease 0.1s forwards; opacity: 0;
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+
+  .param-card {
+    background: white; border-radius: 16px; padding: 16px;
+    margin-bottom: 12px; border: 1px solid #e8f0e4;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .param-title {
+    font-family: 'Playfair Display', serif; font-size: 1rem;
+    font-weight: 600; margin-bottom: 8px; color: var(--vert);
+  }
+  .param-desc { font-size: 0.82rem; color: #555; margin-bottom: 12px; line-height: 1.5; }
+  .btn-param {
+    display: block; width: 100%; padding: 12px; text-align: center;
+    background: var(--vert); color: white; border: none;
+    border-radius: 10px; font-size: 0.88rem; font-family: 'DM Sans', sans-serif;
+    font-weight: 500; cursor: pointer; margin-bottom: 8px;
+  }
+  .btn-param-secondary { background: #f0f4ee; color: var(--vert); border: 1.5px dashed #a0c49a; }
+  .btn-danger-param { background: #fee2e2; color: var(--rouge); }
+
+  .type-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+  .type-btn {
+    padding: 6px 12px; border-radius: 16px; border: 1.5px solid #e0e0e0;
+    font-size: 0.8rem; background: white; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; transition: all 0.15s;
+  }
+  .type-btn.selected { border-color: var(--vert); background: var(--vert-pale); color: var(--vert); font-weight: 500; }
+
+  .loading { text-align: center; padding: 20px; color: var(--gris); font-size: 0.85rem; }
+</style>
+</head>
+<body>
+
+
+<!-- ÉCRAN DE CONNEXION -->
+<div id="login-screen" style="display:none">
+  <div style="position:fixed;inset:0;background:linear-gradient(160deg,#1a3d0f,#2d5a27);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9998;padding:24px">
+    <div style="font-size:4rem;margin-bottom:16px">🌿</div>
+    <div style="font-family:'Playfair Display',serif;font-size:2rem;color:white;margin-bottom:8px">Mon Jardin</div>
+    <div style="color:rgba(255,255,255,0.7);font-size:0.9rem;margin-bottom:48px;text-align:center">Votre jardin exotique, toujours avec vous</div>
+    <button id="btn-google-login" onclick="connecterGoogle()" style="display:flex;align-items:center;gap:12px;background:white;color:#333;border:none;border-radius:12px;padding:14px 24px;font-size:1rem;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;width:100%;max-width:300px;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,0.3)">
+      <svg width="20" height="20" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+      Continuer avec Google
+    </button>
+    <div id="login-error" style="color:#ffb3b3;font-size:0.82rem;margin-top:16px;text-align:center"></div>
+  </div>
+</div>
+
+<!-- SPLASH SCREEN -->
+<div id="splash">
+  <div class="splash-leaves">
+    <span class="splash-leaf" style="top:5%;left:5%;animation-delay:0s;font-size:5rem">🌴</span>
+    <span class="splash-leaf" style="top:10%;right:8%;animation-delay:0.5s;font-size:3rem">🌿</span>
+    <span class="splash-leaf" style="top:30%;left:2%;animation-delay:1s;font-size:3.5rem">🍃</span>
+    <span class="splash-leaf" style="bottom:25%;right:3%;animation-delay:0.3s;font-size:4rem">🌱</span>
+    <span class="splash-leaf" style="bottom:10%;left:10%;animation-delay:0.8s;font-size:3rem">🍋</span>
+    <span class="splash-leaf" style="top:55%;right:12%;animation-delay:1.2s;font-size:2.5rem">🌺</span>
+    <span class="splash-leaf" style="top:70%;left:20%;animation-delay:0.6s;font-size:3rem">🌵</span>
+    <span class="splash-leaf" style="bottom:5%;right:20%;animation-delay:0.9s;font-size:2rem">🫒</span>
+  </div>
+  <div class="splash-icon">🌿</div>
+  <div class="splash-title">Mon Jardin</div>
+  <div class="splash-subtitle">Chargement de vos plantes...</div>
+</div>
+
+<!-- APPLE TOUCH ICON (PWA) -->
+<svg id="pwa-icon" xmlns="http://www.w3.org/2000/svg" style="display:none" viewBox="0 0 180 180">
+  <rect width="180" height="180" rx="40" fill="#2d5a27"/>
+  <text x="90" y="120" font-size="90" text-anchor="middle">🌿</text>
+</svg>
+
+<header>
+  <h1>🌿 Mon Jardin</h1>
+  <p id="date-display"></p>
+
+  <div id="user-bar" style="display:none;padding:6px 16px 8px;display:flex;align-items:center;justify-content:space-between;background:rgba(0,0,0,0.15)">
+    <div style="display:flex;align-items:center;gap:8px">
+      <img id="user-avatar" src="" style="width:24px;height:24px;border-radius:50%;display:none">
+      <span id="user-name" style="font-size:0.78rem;color:rgba(255,255,255,0.9)"></span>
+    </div>
+    <button onclick="deconnecter()" style="font-size:0.72rem;color:rgba(255,255,255,0.7);background:none;border:none;cursor:pointer">Déconnexion</button>
+  </div>
+
+  <nav class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('plantes')">
+      <span class="tab-icon">🪴</span>Plantes
+    </button>
+    <button class="nav-tab" onclick="showPage('calendrier')">
+      <span class="tab-icon">📅</span>Calendrier
+    </button>
+    <button class="nav-tab" onclick="showPage('journal')">
+      <span class="tab-icon">📔</span>Journal
+    </button>
+    <button class="nav-tab" onclick="showPage('capteurs')">
+      <span class="tab-icon">📡</span>Capteurs
+    </button>
+    <button class="nav-tab" onclick="showPage('parametres')">
+      <span class="tab-icon">⚙️</span>Paramètres
+    </button>
+  </nav>
+</header>
+
+<div class="meteo-bar" id="meteo-bar">
+  <div class="loading">⏳ Chargement météo...</div>
+</div>
+
+<!-- PAGE PLANTES -->
+<div class="main page active" id="page-plantes">
+  <div id="alertes"></div>
+  <div class="section-title">🪴 Plantes en pot</div>
+  <div id="plantes-pot"></div>
+  <div class="section-title">🌱 Pleine terre</div>
+  <div id="plantes-terre"></div>
+</div>
+
+<!-- PAGE CALENDRIER -->
+<div class="main page" id="page-calendrier">
+  <div id="calendrier-content"></div>
+</div>
+
+<!-- PAGE JOURNAL GLOBAL -->
+<div class="main page" id="page-journal">
+  <div class="section-title">📔 Journal de bord</div>
+  <div id="journal-global"></div>
+</div>
+
+<button class="fab" id="fab-btn" onclick="openModalAjouter()">＋</button>
+
+
+<!-- PAGE PARAMÈTRES -->
+<div class="main page" id="page-parametres">
+  <div class="section-title">⚙️ Paramètres & Données</div>
+  
+  <div class="param-card">
+    <div class="param-title">💾 Sauvegarde des données</div>
+    <p class="param-desc">Exportez vos données pour les conserver en sécurité. Réimportez-les après une mise à jour de l'app.</p>
+    <button class="btn-param" onclick="exporterDonnees()">📤 Exporter mes données (JSON)</button>
+    <label for="import-input" class="btn-param btn-param-secondary">📥 Importer des données</label>
+    <input type="file" id="import-input" accept=".json" class="photo-input" onchange="importerDonnees(this)">
+    <div id="import-status" style="font-size:0.78rem;color:var(--vert);margin-top:8px;text-align:center"></div>
+  </div>
+
+  <div class="param-card">
+    <div class="param-title">🔄 Dernière sauvegarde</div>
+    <div id="derniere-sauvegarde" style="font-size:0.82rem;color:var(--gris);padding:8px 0"></div>
+  </div>
+
+  <div class="param-card">
+    <div class="param-title">📊 Résumé</div>
+    <div id="resume-donnees" style="font-size:0.82rem;color:#444;line-height:1.8"></div>
+  </div>
+
+  <div class="param-card" style="border-color:#fee2e2">
+    <div class="param-title" style="color:var(--rouge)">⚠️ Zone de danger</div>
+    <button class="btn-param btn-danger-param" onclick="reinitialiserDonnees()">🗑️ Réinitialiser toutes les données</button>
+  </div>
+</div>
+
+<!-- PAGE CAPTEURS -->
+<div class="main page" id="page-capteurs">
+  <div class="section-title">📡 Mes capteurs</div>
+  <p style="font-size:0.82rem;color:var(--gris);margin-bottom:16px">Associez un capteur d'humidité à chaque plante. En mode simulation, saisissez manuellement le taux d'humidité.</p>
+  <div id="capteurs-list"></div>
+</div>
+
+<!-- MODAL CAPTEUR -->
+<div class="modal-overlay" id="modal-capteur" onclick="closeModalOutside(event,'modal-capteur')">
+  <div class="modal">
+    <h2 id="modal-capteur-title">📡 Configurer un capteur</h2>
+    <input type="hidden" id="c-plante-id">
+    <div class="form-group">
+      <label>ID du capteur (ex: ESP32-01)</label>
+      <input type="text" id="c-id" placeholder="ex: ESP32-01 ou laisser vide">
+    </div>
+    <div class="form-group">
+      <label>Mode</label>
+      <select id="c-mode">
+        <option value="simulation">🧪 Simulation (saisie manuelle)</option>
+        <option value="reel">📡 Capteur réel (ESP32/WiFi)</option>
+      </select>
+    </div>
+    <div class="form-group" id="c-url-group" style="display:none">
+      <label>URL du capteur (ex: http://192.168.1.50/humidite)</label>
+      <input type="text" id="c-url" placeholder="http://192.168.x.x/humidite">
+    </div>
+    <div class="form-group">
+      <label>Seuil sec (%) — arroser en dessous</label>
+      <input type="number" id="c-seuil-sec" value="30" min="0" max="100">
+    </div>
+    <div class="form-group">
+      <label>Seuil trop humide (%) — ne pas arroser</label>
+      <input type="number" id="c-seuil-humide" value="70" min="0" max="100">
+    </div>
+    <div class="form-group" id="c-simulation-group">
+      <label>Humidité actuelle simulée (%)</label>
+      <input type="number" id="c-valeur" value="50" min="0" max="100">
+    </div>
+    <button class="btn-submit" onclick="sauvegarderCapteur()">✅ Enregistrer</button>
+    <button class="btn-danger" id="btn-supprimer-capteur" onclick="supprimerCapteur()" style="display:none">🗑️ Supprimer le capteur</button>
+    <button class="btn-cancel" onclick="closeModal('modal-capteur')">Annuler</button>
+  </div>
+</div>
+
+<!-- MODAL CAPTEUR -->
+<div class="modal-overlay" id="modal-plante" onclick="closeModalOutside(event,'modal-plante')">
+  <div class="modal">
+    <h2 id="modal-plante-title">➕ Ajouter une plante</h2>
+    <input type="hidden" id="f-id">
+    <div class="form-group">
+      <label>Nom commun</label>
+      <input type="text" id="f-nom" placeholder="ex: Bougainvillier">
+    </div>
+    <div class="form-group">
+      <label>Nom latin (optionnel)</label>
+      <input type="text" id="f-latin" placeholder="ex: Bougainvillea spectabilis">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Emoji</label>
+        <input type="text" id="f-emoji" placeholder="🌸" maxlength="2">
+      </div>
+      <div class="form-group">
+        <label>Emplacement</label>
+        <select id="f-lieu">
+          <option value="pot">En pot</option>
+          <option value="terre">Pleine terre</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Exposition</label>
+        <select id="f-expo">
+          <option value="soleil">Plein soleil</option>
+          <option value="mi-ombre">Mi-ombre</option>
+          <option value="ombre">Ombre</option>
+          <option value="interieur">Intérieur</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Volume pot (L)</label>
+        <input type="number" id="f-volume" placeholder="ex: 20" min="1">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Fréquence (jours)</label>
+        <input type="number" id="f-freq" placeholder="ex: 3" min="1">
+      </div>
+      <div class="form-group">
+        <label>Quantité (L)</label>
+        <input type="number" id="f-qte" placeholder="ex: 1.5" step="0.5" min="0.5">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>En adaptation ? (jours restants)</label>
+      <input type="number" id="f-adaptation" placeholder="0 = pas en adaptation" min="0">
+    </div>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea id="f-notes" placeholder="ex: Rentrer en octobre"></textarea>
+    </div>
+    <div class="form-group">
+      <label>Photo de la plante</label>
+      <div class="photo-preview-container">
+        <div id="f-photo-preview" class="photo-preview-placeholder">🌱</div>
+        <div>
+          <label for="f-photo-input" class="photo-label">📷 Choisir une photo</label>
+          <input type="file" accept="image/*" class="photo-input" id="f-photo-input" onchange="previewPhotoModal(this)">
+          <button class="btn-suppr-photo" onclick="supprimerPhotoModal()" id="btn-suppr-photo-modal" style="display:none">🗑️ Supprimer la photo</button>
+        </div>
+      </div>
+    </div>
+    <button class="btn-submit" onclick="sauvegarderPlante()">✅ Enregistrer</button>
+    <button class="btn-danger" id="btn-supprimer" onclick="supprimerPlante()" style="display:none">🗑️ Supprimer cette plante</button>
+    <button class="btn-cancel" onclick="closeModal('modal-plante')">Annuler</button>
+  </div>
+</div>
+
+<!-- MODAL JOURNAL ENTRÉE -->
+<div class="modal-overlay" id="modal-journal" onclick="closeModalOutside(event,'modal-journal')">
+  <div class="modal">
+    <h2>📝 Ajouter une note</h2>
+    <input type="hidden" id="j-plant-id">
+    <div class="form-group">
+      <label>Type d'événement</label>
+      <div class="type-btns">
+        <button class="type-btn selected" data-type="observation" onclick="selectType(this)">👁️ Observation</button>
+        <button class="type-btn" data-type="taille" onclick="selectType(this)">✂️ Taille</button>
+        <button class="type-btn" data-type="rempotage" onclick="selectType(this)">🪴 Rempotage</button>
+        <button class="type-btn" data-type="traitement" onclick="selectType(this)">💊 Traitement</button>
+        <button class="type-btn" data-type="engrais" onclick="selectType(this)">🌱 Engrais</button>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Note</label>
+      <textarea id="j-note" placeholder="ex: Feuilles jaunes sur les bords, sol bien humide"></textarea>
+    </div>
+    <div class="form-group" id="j-adaptation-group" style="display:none">
+      <label>Période d'adaptation après rempotage (jours)</label>
+      <input type="number" id="j-adaptation-jours" value="30" min="1" max="90">
+    </div>
+    <button class="btn-submit" onclick="ajouterEntreeJournal()">✅ Enregistrer</button>
+    <button class="btn-cancel" onclick="closeModal('modal-journal')">Annuler</button>
+  </div>
+</div>
+
+<script>
+// ===================== DONNÉES =====================
+const CALENDRIER_SAISONNIER = [
+  // Janvier
+  { mois: 1, jour: 1, plante: 'Citronnier & Calamondin', action: "Arrosage toutes les 7-10j (0.3-0.5L), pas d'engrais. Maintenir Calamondin à 8-12°C.", type: 'hiver', emoji: '❄️' },
+  { mois: 1, jour: 1, plante: 'Phoenix (pot)', action: "Arrosage toutes les 14j (0.5L max). Surveiller gel < -2°C, rentrer en cuisine si nécessaire.", type: 'hiver', emoji: '❄️' },
+  { mois: 1, jour: 1, plante: 'Cycas', action: "1 arrosage par mois (0.2L). Maintenir en pièce lumineuse hors gel.", type: 'hiver', emoji: '❄️' },
+  // Février
+  { mois: 2, jour: 1, plante: 'Citronnier & Calamondin', action: "Inspecter feuilles pour cochenilles (taches blanches). Traiter si nécessaire à l'huile de neem.", type: 'entretien', emoji: '🔍' },
+  { mois: 2, jour: 15, plante: 'Strelitzia #1 & #2', action: "Commencer à augmenter progressivement l'arrosage (toutes les 21j → 14j).", type: 'arrosage', emoji: '💧' },
+  // Mars
+  { mois: 3, jour: 1, plante: 'Citronnier & Calamondin', action: "Reprendre engrais agrumes (NPK équilibré). 1 fois par mois jusqu'en novembre.", type: 'engrais', emoji: '🌱' },
+  { mois: 3, jour: 1, plante: 'Cycas', action: "Reprendre arrosage : toutes les 14j (0.3L). Surveiller apparition nouvelles frondes.", type: 'arrosage', emoji: '💧' },
+  { mois: 3, jour: 15, plante: 'Phoenix (pot)', action: "Reprendre arrosage progressif : toutes les 7j (1.5L). Reprise végétative.", type: 'arrosage', emoji: '💧' },
+  // Avril
+  { mois: 4, jour: 1, plante: 'Cycas', action: "Arrosage toutes les 7j (0.5L). Sortir en mi-ombre si T° nuit > 8°C.", type: 'entretien', emoji: '🌤️' },
+  { mois: 4, jour: 15, plante: 'Strelitzia #1 & #2', action: "Sortie progressive à mi-ombre (sous le Phoenix). Acclimatation 3 semaines obligatoire. Arrosage toutes les 7j (1L).", type: 'sortie', emoji: '🌤️' },
+  { mois: 4, jour: 15, plante: 'Calamondin', action: "Sortie progressive après le 15 avril si T° nuit > 8°C. Commencer à mi-ombre 1 semaine.", type: 'sortie', emoji: '🌤️' },
+  // Mai
+  { mois: 5, jour: 1, plante: 'Phoenix (pot)', action: "Sortie définitive. Reprendre engrais palmier (NPK 6-3-6). Arrosage toutes les 5j (2L).", type: 'sortie', emoji: '☀️' },
+  { mois: 5, jour: 15, plante: 'Cycas', action: "Tailler toutes les frondes mortes au ras du tronc. Sécateur désinfecté. Traiter cicatrices à la cannelle.", type: 'taille', emoji: '✂️' },
+  { mois: 5, jour: 15, plante: 'Olivier', action: "Taille légère de mise en forme. Retirer branches mortes. Retirer le fil bleu !", type: 'taille', emoji: '✂️' },
+  // Juin
+  { mois: 6, jour: 1, plante: 'Phoenix (pot & terre)', action: "Début fertilisation mensuelle NPK 6-3-6 jusqu'en septembre.", type: 'engrais', emoji: '🌱' },
+  { mois: 6, jour: 1, plante: 'Strelitzia #1 & #2', action: "Passer progressivement en plein soleil sur 2 semaines. Arrosage toutes les 7j (1.5L).", type: 'entretien', emoji: '☀️' },
+  { mois: 6, jour: 15, plante: 'Citronnier', action: "Arrosage tous les 2j (1.5L) si chaleur. Surveiller sol : ne jamais laisser sécher complètement.", type: 'arrosage', emoji: '💧' },
+  // Juillet
+  { mois: 7, jour: 1, plante: 'Strelitzia #1 & #2', action: "Commencer engrais riche en potassium (K fort) toutes les 2 semaines jusqu'en août.", type: 'engrais', emoji: '🌱' },
+  { mois: 7, jour: 1, plante: 'Phoenix (pot)', action: "Arrosage toutes les 3j (3L). Brumiser le feuillage 2x/semaine si canicule.", type: 'arrosage', emoji: '💧' },
+  { mois: 7, jour: 1, plante: 'Cycas', action: "Arrosage toutes les 5j (0.8L). Eau de pluie idéale. Ne pas mouiller les frondes.", type: 'arrosage', emoji: '💧' },
+  // Août
+  { mois: 8, jour: 1, plante: 'Toutes plantes en pot', action: "Si T° > 35°C : doubler fréquence arrosage. Déplacer à mi-ombre si coup de chaud.", type: 'arrosage', emoji: '🌡️' },
+  { mois: 8, jour: 15, plante: 'Calamondin', action: "Floraison possible — ne pas déplacer. Maintenir arrosage régulier toutes les 2j (1L).", type: 'entretien', emoji: '🌸' },
+  // Septembre
+  { mois: 9, jour: 1, plante: 'Phoenix (pot & terre)', action: "Dernier engrais de l'année. Après le 15 sept : réduire arrosage toutes les 7j (1.5L).", type: 'engrais', emoji: '🌱' },
+  { mois: 9, jour: 15, plante: 'Cycas', action: "Réduire arrosage : toutes les 14j (0.3L). Préparer rentrée hivernale pour mi-octobre.", type: 'hiver', emoji: '🍂' },
+  { mois: 9, jour: 15, plante: 'Strelitzia #1 & #2', action: "Réduire arrosage : toutes les 14j (0.8L). Arrêter engrais.", type: 'arrosage', emoji: '🍂' },
+  // Octobre
+  { mois: 10, jour: 1, plante: 'Phoenix (terre)', action: "Installer protection : attacher frondes, caisse verte ventilée + voile P30. Surveiller prévisions gel.", type: 'hiver', emoji: '🛡️' },
+  { mois: 10, jour: 15, plante: 'Phoenix (pot)', action: "Rentrer avant les gelées (mi-octobre à 600m). Voile + mur sud. Réduire arrosage toutes les 14j.", type: 'rentree', emoji: '🏠' },
+  { mois: 10, jour: 15, plante: 'Strelitzia #1 & #2', action: "Rentrer si T° nuit < 10°C. Pièce lumineuse. Arrosage toutes les 21j (0.5L).", type: 'rentree', emoji: '🏠' },
+  { mois: 10, jour: 15, plante: 'Cycas', action: "Rentrer dans pièce lumineuse hors gel. Arrosage 1x/mois (0.2L).", type: 'rentree', emoji: '🏠' },
+  { mois: 10, jour: 15, plante: 'Calamondin', action: "Rentrer à 8-12°C pour favoriser floraison hivernale et fruits. Réduire arrosage toutes les 10j.", type: 'rentree', emoji: '🏠' },
+  // Novembre
+  { mois: 11, jour: 1, plante: 'Phoenix (terre)', action: "Traitement bouillie bordelaise sur le cœur avant de fermer la protection. Laisser ventilation par le bas.", type: 'traitement', emoji: '💊' },
+  { mois: 11, jour: 1, plante: 'Citronnier', action: "Réduire arrosage toutes les 7j (0.5L). Arrêter engrais jusqu'en mars.", type: 'hiver', emoji: '❄️' },
+  { mois: 11, jour: 15, plante: 'Yucca rostrata & Olivier', action: "Pas d'arrosage sauf sécheresse exceptionnelle. Vérifier que les racines ne baignent pas dans l'eau.", type: 'hiver', emoji: '❄️' },
+  // Décembre
+  { mois: 12, jour: 1, plante: 'Toutes plantes hivernées', action: "Arrosage minimal (2x/mois max). Surveiller T° min : rentrer en cuisine si prévisions < -5°C.", type: 'hiver', emoji: '❄️' },
+  { mois: 12, jour: 15, plante: 'Calamondin', action: "Floraison hivernale en cours — maintenir 8-12°C, arrosage toutes les 10j (0.3L).", type: 'entretien', emoji: '🌸' },
+];
+
+// Données d'arrosage saisonnières validées (sources botaniques)
+// Format: [frequence_jours, quantite_litres] par saison [printemps, ete, automne, hiver]
+const ARROSAGE_SAISONNIER = {
+  'Citrus limon':               [[3,1.0],[2,1.5],[5,0.8],[7,0.5]],
+  'Citrofortunella microcarpa': [[3,0.8],[2,1.0],[5,0.5],[10,0.3]],
+  'Phoenix canariensis pot':    [[5,2.0],[3,3.0],[7,1.5],[14,0.5]],
+  'Cycas revoluta':             [[7,0.5],[5,0.8],[14,0.3],[30,0.2]],
+  'Strelitzia reginae':         [[7,1.0],[7,1.5],[14,0.8],[21,0.5]],
+  'Yucca rostrata':             [[21,0],[21,0],[21,0],[30,0]],
+  'Olea europaea':              [[21,0],[21,0],[21,0],[30,0]],
+  'Phoenix canariensis terre':  [[10,0],[7,0],[14,0],[30,0]],
+};
+
+function getSaison() {
+  const m = new Date().getMonth(); // 0-11
+  if (m >= 2 && m <= 4) return 0; // printemps
+  if (m >= 5 && m <= 7) return 1; // été
+  if (m >= 8 && m <= 10) return 2; // automne
+  return 3; // hiver
+}
+
+function getArrosageSaisonnier(plante) {
+  const saison = getSaison();
+  const key = plante.latin === 'Phoenix canariensis'
+    ? (plante.lieu === 'pot' ? 'Phoenix canariensis pot' : 'Phoenix canariensis terre')
+    : plante.latin;
+  const data = ARROSAGE_SAISONNIER[key];
+  if (data) return { frequence: data[saison][0], quantite: data[saison][1] };
+  return { frequence: plante.frequence, quantite: plante.quantite };
+}
+
+const PLANTES_DEFAULT = [
+  { id:1, nom:"Citronnier", latin:"Citrus limon", emoji:"🍋", lieu:"pot", expo:"soleil", volume:15, frequence:3, quantite:1.0, notes:"Cochenilles (taches blanches). Rentre l'hiver. Engrais agrumes mars-novembre. Arrosage eau non calcaire de préférence.", lastWater:null, historique:[], journal:[], adaptationJours:0 },
+  { id:2, nom:"Calamondin", latin:"Citrofortunella microcarpa", emoji:"🍊", lieu:"pot", expo:"soleil", volume:12, frequence:3, quantite:0.8, notes:"Hiverner à 8-12°C pour favoriser floraison et fruits. Engrais agrumes mars-novembre. Boutons floraux au printemps.", lastWater:null, historique:[], journal:[], adaptationJours:0 },
+  { id:3, nom:"Phoenix en pot", latin:"Phoenix canariensis", emoji:"🌴", lieu:"pot", expo:"soleil", volume:40, frequence:5, quantite:2.0, notes:"Rentrer mi-octobre. Voile d'hivernage + mur sud. Engrais NPK 6-3-6 juin-septembre. Brumiser le feuillage en été.", lastWater:null, historique:[], journal:[], adaptationJours:0 },
+  { id:4, nom:"Cycas", latin:"Cycas revoluta", emoji:"🌿", lieu:"pot", expo:"soleil", volume:20, frequence:7, quantite:0.5, notes:"Tailler les frondes mortes au ras du tronc fin mai. Substrat acide bien drainé. Rentrer à l'abri hors gel. Arrosage eau de pluie idéal.", lastWater:null, historique:[], journal:[], adaptationJours:0 },
+  { id:5, nom:"Strelitzia #1", latin:"Strelitzia reginae", emoji:"🌺", lieu:"pot", expo:"mi-ombre", volume:25, frequence:7, quantite:1.0, notes:"Mi-ombre sous Phoenix pendant adaptation. Engrais riche en potassium à partir de juillet. Rentrer si T° < 10°C. Floraison dès 4-5 ans.", lastWater:null, historique:[], journal:[], adaptationJours:21, adaptationDate:new Date().toISOString() },
+  { id:6, nom:"Strelitzia #2", latin:"Strelitzia reginae", emoji:"🌺", lieu:"pot", expo:"mi-ombre", volume:25, frequence:7, quantite:1.0, notes:"Mi-ombre sous Phoenix pendant adaptation. Engrais riche en potassium à partir de juillet. Rentrer si T° < 10°C. Floraison dès 4-5 ans.", lastWater:null, historique:[], journal:[], adaptationJours:21, adaptationDate:new Date().toISOString() },
+  { id:7, nom:"Yucca rostrata", latin:"Yucca rostrata", emoji:"🌵", lieu:"terre", expo:"soleil", volume:null, frequence:21, quantite:0, notes:"Très rustique jusqu'à -15°C. Nettoyage feuilles mortes seulement. Arrosage uniquement si sécheresse prolongée > 3 semaines.", lastWater:null, historique:[], journal:[], adaptationJours:0 },
+  { id:8, nom:"Olivier", latin:"Olea europaea", emoji:"🫒", lieu:"terre", expo:"soleil", volume:null, frequence:21, quantite:0, notes:"Bien établi, 2 hivers sans protection. Retirer fil bleu. Taille légère mai/juin. Résiste jusqu'à -10/-12°C.", lastWater:null, historique:[], journal:[], adaptationJours:0 },
+  { id:9, nom:"Phoenix en terre", latin:"Phoenix canariensis", emoji:"🌴", lieu:"terre", expo:"soleil", volume:null, frequence:10, quantite:0, notes:"Perd les frondes en hiver mais repart chaque printemps. Protection caisse verte ventilée + mur pierre. Bouillie bordelaise en novembre.", lastWater:null, historique:[], journal:[], adaptationJours:0 },
+];
+
+// Seuils d'humidité par défaut par espèce
+const SEUILS_ESPECE = {
+  'Citrus limon':              { sec: 35, humide: 70 },
+  'Citrofortunella microcarpa':{ sec: 35, humide: 70 },
+  'Phoenix canariensis':       { sec: 25, humide: 60 },
+  'Cycas revoluta':            { sec: 20, humide: 55 },
+  'Strelitzia reginae':        { sec: 30, humide: 65 },
+  'Yucca rostrata':            { sec: 15, humide: 40 },
+  'Olea europaea':             { sec: 20, humide: 50 },
+};
+
+let plantes = JSON.parse(localStorage.getItem('plantes_v2') || 'null') || PLANTES_DEFAULT;
+let capteurs = JSON.parse(localStorage.getItem('capteurs_v1') || '{}'); // { planteId: { id, mode, url, seuilSec, seuilHumide, valeur, lastUpdate } }
+let meteo = null;
+let currentPage = 'plantes';
+
+// sauvegarder() définie plus bas avec Firebase sync
+function sauvegarderCapteurs() { localStorage.setItem('capteurs_v1', JSON.stringify(capteurs)); }
+
+
+// ===================== PHOTOS =====================
+let photos = JSON.parse(localStorage.getItem('photos_v1') || '{}'); // { planteId: base64 }
+function sauvegarderPhotos() { localStorage.setItem('photos_v1', JSON.stringify(photos)); }
+
+function ouvrirSelectionPhoto(planteId) {
+  const input = document.getElementById(`photo-input-${planteId}`);
+  if (input) input.click();
+}
+
+function photoChoisie(planteId, input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    // Redimensionner l'image
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const size = 200;
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      // Crop carré centré
+      const min = Math.min(img.width, img.height);
+      const sx = (img.width - min) / 2;
+      const sy = (img.height - min) / 2;
+      ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+      photos[planteId] = canvas.toDataURL('image/jpeg', 0.7);
+      sauvegarderPhotos();
+      afficherPlantes();
+      // Rouvrir la carte
+      setTimeout(() => { const b = document.getElementById(`body-${planteId}`); if (b) b.classList.add('open'); }, 50);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+
+function previewPhotoModal(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      const size = 200;
+      canvas.width = size; canvas.height = size;
+      const ctx = canvas.getContext('2d');
+      const min = Math.min(img.width, img.height);
+      const sx = (img.width - min) / 2;
+      const sy = (img.height - min) / 2;
+      ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+      const b64 = canvas.toDataURL('image/jpeg', 0.7);
+      const preview = document.getElementById('f-photo-preview');
+      preview.innerHTML = '';
+      const imgEl = document.createElement('img');
+      imgEl.src = b64; imgEl.className = 'photo-preview';
+      preview.appendChild(imgEl);
+      preview.dataset.photo = b64;
+      document.getElementById('btn-suppr-photo-modal').style.display = 'block';
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function supprimerPhotoModal() {
+  const preview = document.getElementById('f-photo-preview');
+  const planteId = parseInt(document.getElementById('f-id').value);
+  preview.innerHTML = '🌱';
+  preview.className = 'photo-preview-placeholder';
+  delete preview.dataset.photo;
+  if (planteId) { delete photos[planteId]; sauvegarderPhotos(); }
+  document.getElementById('btn-suppr-photo-modal').style.display = 'none';
+}
+
+// ===================== ADAPTATION =====================
+function joursAdaptationRestants(plante) {
+  if (!plante.adaptationJours || !plante.adaptationDate) return 0;
+  const debut = new Date(plante.adaptationDate).getTime();
+  const fin = debut + plante.adaptationJours * 86400000;
+  const restant = Math.ceil((fin - Date.now()) / 86400000);
+  return Math.max(0, restant);
+}
+
+// ===================== MÉTÉO =====================
+async function chargerMeteoAvecCoords(lat, lon, ville) {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=precipitation_sum,temperature_2m_max,temperature_2m_min&timezone=auto&forecast_days=3`;
+    const res = await fetch(url);
+    const data = await res.json();
+    const tempMax = data.daily.temperature_2m_max[0];
+    const tempMin = data.daily.temperature_2m_min[0];
+    const pluieAuj = data.daily.precipitation_sum[0];
+    const pluieDemain = data.daily.precipitation_sum[1];
+    const tempMinDemain = data.daily.temperature_2m_min[1];
+    meteo = { tempMax, tempMin, pluieAuj, pluieDemain, tempMinDemain };
+
+    document.getElementById('meteo-bar').innerHTML = `
+      <div class="meteo-item">🌡️ <span>${tempMin}° / ${tempMax}°C</span></div>
+      <div class="meteo-item">🌧️ <span class="label">Pluie</span> <span>${pluieAuj} mm</span></div>
+      <div class="meteo-item">📅 <span class="label">Demain</span> <span>${tempMinDemain}°C / ${pluieDemain}mm</span></div>
+      <div class="meteo-item" style="font-size:0.72rem;opacity:0.8">📍 ${ville}</div>
+    `;
+
+    let alertesHTML = '';
+    if (tempMin <= 2 || tempMinDemain <= 2) {
+      alertesHTML += `<div class="alerte-gel">🥶 Risque de gel — ${tempMin <= 2 ? "ce soir" : "demain"} (${tempMin <= 2 ? tempMin : tempMinDemain}°C) ! Vérifiez vos plantes sensibles.</div>`;
+    }
+    if (pluieAuj > 5) {
+      alertesHTML += `<div class="alerte-pluie">💧 Il a plu ${pluieAuj} mm — plantes en pleine terre arrosées naturellement.</div>`;
+    } else if (pluieDemain > 5) {
+      alertesHTML += `<div class="alerte-pluie">🌦️ Pluie prévue demain (${pluieDemain} mm) — pensez-y avant d'arroser.</div>`;
+    }
+    document.getElementById('alertes').innerHTML = alertesHTML;
+    afficherPlantes();
+    dismissSplash();
+  } catch(e) {
+    document.getElementById('meteo-bar').innerHTML = `<span style="opacity:0.7;padding:8px 16px">Météo indisponible</span>`;
+    afficherPlantes();
+    dismissSplash();
+  }
+}
+
+async function chargerMeteo() {
+  document.getElementById('meteo-bar').innerHTML = `<span style="opacity:0.7;padding:4px 16px">📍 Localisation en cours...</span>`;
+
+  if (!navigator.geolocation) {
+    // Fallback Saint-Marcel
+    await chargerMeteoAvecCoords(45.91, 4.52, "Saint-Marcel-l'Éclairé");
+    return;
+  }
+
+  navigator.geolocation.getCurrentPosition(
+    async (pos) => {
+      const lat = pos.coords.latitude.toFixed(4);
+      const lon = pos.coords.longitude.toFixed(4);
+      // Récupérer le nom de la ville via reverse geocoding
+      let ville = `${lat}, ${lon}`;
+      try {
+        const geo = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json`);
+        const geoData = await geo.json();
+        ville = geoData.address.village || geoData.address.town || geoData.address.city || geoData.address.municipality || ville;
+      } catch(e) {}
+      await chargerMeteoAvecCoords(lat, lon, ville);
+    },
+    async () => {
+      // Refus ou erreur → fallback Saint-Marcel
+      await chargerMeteoAvecCoords(45.91, 4.52, "Saint-Marcel-l'Éclairé");
+    },
+    { timeout: 8000 }
+  );
+}
+
+// ===================== CAPTEURS =====================
+function statutHumidite(valeur, seuilSec, seuilHumide) {
+  if (valeur <= seuilSec) return { cls: 'sec', label: '🔴 Sol sec' };
+  if (valeur >= seuilHumide) return { cls: 'trop', label: '🔵 Trop humide' };
+  if (valeur < seuilSec + 15) return { cls: 'moyen', label: '🟡 Un peu sec' };
+  return { cls: 'bon', label: '🟢 Humidité ok' };
+}
+
+function capteurHTML(plante) {
+  const c = capteurs[plante.id];
+  if (!c) {
+    return `<button class="btn-simuler" onclick="openModalCapteur(${plante.id})">📡 Associer un capteur</button>`;
+  }
+  const valeur = c.valeur !== undefined ? c.valeur : 50;
+  const st = statutHumidite(valeur, c.seuilSec || 30, c.seuilHumide || 70);
+  return `
+    <div class="capteur-info">
+      <span>💧 Humidité sol : <span class="capteur-valeur capteur-statut ${st.cls}">${valeur}%</span> ${st.label}</span>
+      <span class="capteur-simulé">${c.mode === 'simulation' ? '🧪 Sim.' : '📡 Live'}</span>
+    </div>
+    <div class="capteur-bar"><div class="capteur-fill ${st.cls}" style="width:${valeur}%"></div></div>
+    <button class="btn-simuler" onclick="openModalCapteur(${plante.id})" style="margin-top:6px">⚙️ Configurer le capteur</button>
+  `;
+}
+
+async function rafraichirCapteursReels() {
+  for (const [pid, c] of Object.entries(capteurs)) {
+    if (c.mode !== 'reel' || !c.url) continue;
+    try {
+      const res = await fetch(c.url, { timeout: 3000 });
+      const data = await res.json();
+      c.valeur = data.humidite || data.humidity || data.value || c.valeur;
+      c.lastUpdate = new Date().toISOString();
+    } catch(e) {}
+  }
+  sauvegarderCapteurs();
+}
+
+function openModalCapteur(planteId) {
+  const plante = plantes.find(p => p.id === planteId);
+  const c = capteurs[planteId];
+  const seuils = SEUILS_ESPECE[plante?.latin] || { sec: 30, humide: 65 };
+
+  document.getElementById('modal-capteur-title').textContent = `📡 Capteur — ${plante?.nom || ''}`;
+  document.getElementById('c-plante-id').value = planteId;
+  document.getElementById('c-id').value = c?.id || '';
+  document.getElementById('c-mode').value = c?.mode || 'simulation';
+  document.getElementById('c-url').value = c?.url || '';
+  document.getElementById('c-seuil-sec').value = c?.seuilSec || seuils.sec;
+  document.getElementById('c-seuil-humide').value = c?.seuilHumide || seuils.humide;
+  document.getElementById('c-valeur').value = c?.valeur !== undefined ? c.valeur : 50;
+  document.getElementById('c-url-group').style.display = (c?.mode === 'reel') ? 'block' : 'none';
+  document.getElementById('c-simulation-group').style.display = (c?.mode === 'reel') ? 'none' : 'block';
+  document.getElementById('btn-supprimer-capteur').style.display = c ? 'block' : 'none';
+  document.getElementById('c-mode').onchange = function() {
+    document.getElementById('c-url-group').style.display = this.value === 'reel' ? 'block' : 'none';
+    document.getElementById('c-simulation-group').style.display = this.value === 'reel' ? 'none' : 'block';
+  };
+  openModal('modal-capteur');
+}
+
+function sauvegarderCapteur() {
+  const planteId = parseInt(document.getElementById('c-plante-id').value);
+  const mode = document.getElementById('c-mode').value;
+  capteurs[planteId] = {
+    id: document.getElementById('c-id').value.trim() || `SIM-${planteId}`,
+    mode,
+    url: document.getElementById('c-url').value.trim(),
+    seuilSec: parseInt(document.getElementById('c-seuil-sec').value),
+    seuilHumide: parseInt(document.getElementById('c-seuil-humide').value),
+    valeur: parseInt(document.getElementById('c-valeur').value),
+    lastUpdate: new Date().toISOString()
+  };
+  sauvegarderCapteurs();
+  closeModal('modal-capteur');
+  afficherPlantes();
+  if (currentPage === 'capteurs') afficherPageCapteurs();
+}
+
+function supprimerCapteur() {
+  const planteId = parseInt(document.getElementById('c-plante-id').value);
+  delete capteurs[planteId];
+  sauvegarderCapteurs();
+  closeModal('modal-capteur');
+  afficherPlantes();
+  if (currentPage === 'capteurs') afficherPageCapteurs();
+}
+
+function afficherPageCapteurs() {
+  let html = '';
+  plantes.forEach(p => {
+    const c = capteurs[p.id];
+    const valeur = c?.valeur;
+    const seuils = SEUILS_ESPECE[p.latin] || { sec: 30, humide: 65 };
+    const st = c ? statutHumidite(valeur, c.seuilSec, c.seuilHumide) : null;
+
+    html += `<div class="capteur-card">
+      <div class="capteur-card-header">
+        <div>
+          <div class="capteur-nom">${p.emoji} ${p.nom}</div>
+          ${c ? `<div class="capteur-id">${c.id}</div>` : '<div class="capteur-id" style="color:#aaa">Pas de capteur</div>'}
+        </div>
+        <span class="${c ? (c.mode === 'simulation' ? 'capteur-badge-simulé' : 'capteur-badge-actif') : 'capteur-badge-simulé'}">${c ? (c.mode === 'simulation' ? '🧪 Simulation' : '📡 Actif') : '— Non configuré'}</span>
+      </div>`;
+
+    if (c) {
+      html += `
+      <div class="capteur-info">
+        <span>Humidité : <strong class="capteur-statut ${st.cls}">${valeur}%</strong> ${st.label}</span>
+        <span style="font-size:0.7rem;color:var(--gris)">${c.lastUpdate ? 'Mis à jour : ' + new Date(c.lastUpdate).toLocaleTimeString('fr-FR', {hour:'2-digit',minute:'2-digit'}) : ''}</span>
+      </div>
+      <div class="capteur-bar"><div class="capteur-fill ${st.cls}" style="width:${valeur}%"></div></div>
+      <div class="seuils-grid">
+        <div class="seuil-item"><div class="seuil-label">🔴 Seuil sec</div><div class="seuil-val">&lt; ${c.seuilSec}%</div></div>
+        <div class="seuil-item"><div class="seuil-label">🔵 Seuil humide</div><div class="seuil-val">&gt; ${c.seuilHumide}%</div></div>
+      </div>`;
+    }
+
+    html += `<button class="btn-simuler" style="margin-top:10px" onclick="openModalCapteur(${p.id})">${c ? '⚙️ Modifier' : '📡 Associer un capteur'}</button>
+    </div>`;
+  });
+  document.getElementById('capteurs-list').innerHTML = html;
+}
+
+// ===================== ARROSAGE =====================
+function calculerArrosage(plante) {
+  const joursAdapt = joursAdaptationRestants(plante);
+
+  // Récupérer les données saisonnières
+  const saisonData = getArrosageSaisonnier(plante);
+  const frequence = saisonData.frequence;
+  let quantite = saisonData.quantite;
+
+  if (joursAdapt > 0) {
+    return { statut: 'adaptation', message: `Adaptation ${joursAdapt}j`, litres: Math.round(quantite * 0.6 * 10) / 10 };
+  }
+
+  // Si capteur disponible → priorité sur la fréquence
+  const c = capteurs[plante.id];
+  if (c && c.valeur !== undefined) {
+    const st = statutHumidite(c.valeur, c.seuilSec, c.seuilHumide);
+    if (meteo && meteo.tempMax > 28) quantite = Math.round(quantite * 1.3 * 10) / 10;
+    if (st.cls === 'sec') return { statut: 'arroser', message: 'Sol sec !', litres: quantite, capteur: true };
+    if (st.cls === 'moyen') return { statut: 'surveiller', message: 'Un peu sec', litres: quantite, capteur: true };
+    if (st.cls === 'trop') return { statut: 'ok', message: 'Trop humide', litres: 0, capteur: true };
+    return { statut: 'ok', message: 'Humidité ok', litres: 0, capteur: true };
+  }
+
+  const now = Date.now();
+  const dernierArrosage = plante.lastWater ? new Date(plante.lastWater).getTime() : 0;
+  const joursDepuis = dernierArrosage ? Math.floor((now - dernierArrosage) / 86400000) : 999;
+
+  if (plante.lieu === 'terre') {
+    if (meteo && meteo.pluieAuj > 3) return { statut: 'ok', message: 'Pluie suffisante', litres: 0 };
+    if (joursDepuis < frequence) return { statut: 'ok', message: `Dans ${frequence - joursDepuis}j`, litres: 0 };
+    return { statut: 'surveiller', message: 'Vérifier sol', litres: 0 };
+  }
+
+  if (meteo && meteo.tempMax > 28) quantite = Math.round(quantite * 1.3 * 10) / 10;
+  if (meteo && meteo.pluieAuj > 5) return { statut: 'ok', message: 'Humidité ok', litres: 0 };
+
+  if (joursDepuis >= frequence) return { statut: 'arroser', message: 'À arroser', litres: quantite };
+  if (joursDepuis >= frequence - 1) return { statut: 'surveiller', message: 'Bientôt', litres: quantite };
+  return { statut: 'ok', message: `Dans ${frequence - joursDepuis}j`, litres: 0 };
+}
+
+function formatDate(iso) {
+  if (!iso) return 'Jamais';
+  const d = new Date(iso);
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDateCourt(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+}
+
+// ===================== AFFICHAGE PLANTES =====================
+function afficherPlantes() {
+  const pot = plantes.filter(p => p.lieu === 'pot');
+  const terre = plantes.filter(p => p.lieu === 'terre');
+  document.getElementById('plantes-pot').innerHTML = pot.map(cardHTML).join('');
+  document.getElementById('plantes-terre').innerHTML = terre.map(cardHTML).join('');
+}
+
+function cardHTML(plante) {
+  const arrosage = calculerArrosage(plante);
+  const joursAdapt = joursAdaptationRestants(plante);
+  const dernierJournal = plante.journal && plante.journal.length > 0
+    ? plante.journal[plante.journal.length - 1] : null;
+
+  const journalRecent = plante.journal && plante.journal.length > 0
+    ? plante.journal.slice(-2).reverse().map(j => `
+        <div class="journal-entry">
+          <span class="je-type ${j.type}">${typeLabel(j.type)}</span>
+          <span>${j.note}</span><br>
+          <span class="je-date">${formatDate(j.date)}</span>
+        </div>`).join('')
+    : '';
+
+  const photoSrc = photos[plante.id];
+  const photoHTML = photoSrc
+    ? `<label for="photo-input-${plante.id}" onclick="event.stopPropagation()"><img src="${photoSrc}" class="plant-photo" alt="${plante.nom}"></label>`
+    : `<label for="photo-input-${plante.id}" onclick="event.stopPropagation()" class="plant-photo-placeholder">${plante.emoji}</label>`;
+
+  return `
+    <div class="plant-card ${joursAdapt > 0 ? 'en-adaptation' : ''}" id="card-${plante.id}">
+      <input type="file" accept="image/*" class="photo-input" id="photo-input-${plante.id}" onchange="photoChoisie(${plante.id}, this)">
+      <div class="card-header" onclick="toggleCard(${plante.id})">
+        ${photoHTML}
+        <div class="plant-info">
+          <div class="plant-name">${plante.nom}</div>
+          <div class="plant-latin">${plante.latin || ''}</div>
+          <div class="plant-location">📍 ${plante.lieu === 'pot' ? 'En pot' : 'Pleine terre'} · ${plante.expo}</div>
+          ${joursAdapt > 0 ? `<span class="adaptation-tag">🌱 Adaptation : encore ${joursAdapt} jours</span>` : ''}
+        </div>
+        <div class="arrosage-badge">
+          <span class="badge ${arrosage.statut}">${arrosage.message}</span>
+          ${arrosage.litres > 0 ? `<span class="litres">${arrosage.litres} L</span>` : ''}
+        </div>
+      </div>
+      <div class="card-body" id="body-${plante.id}">
+        ${joursAdapt > 0 ? `<div class="alerte-adaptation">🌱 En période d'adaptation (encore ${joursAdapt}j) — arrosage réduit à ${arrosage.litres}L, exposition douce, pas d'engrais.</div>` : ''}
+        <p>${plante.notes}</p>
+        ${capteurHTML(plante)}
+        <div class="card-actions">
+          <button class="btn-arrose" onclick="marquerArrose(${plante.id}, ${arrosage.litres || plante.quantite})">
+            💧 Arrosé (${arrosage.litres || plante.quantite}L)
+          </button>
+          <button class="btn-journal" onclick="openJournal(${plante.id})">📝</button>
+          <button class="btn-edit" onclick="openModalModifier(${plante.id})">✏️</button>
+        </div>
+        <div class="last-water">Dernier arrosage : ${formatDate(plante.lastWater)}</div>
+        ${journalRecent ? `<div class="journal-section"><h4>Dernières notes</h4>${journalRecent}</div>` : ''}
+      </div>
+    </div>`;
+}
+
+function typeLabel(type) {
+  const labels = { arrosage:'💧 Arrosage', observation:'👁️ Obs.', taille:'✂️ Taille', rempotage:'🪴 Rempotage', traitement:'💊 Traitement', engrais:'🌱 Engrais' };
+  return labels[type] || type;
+}
+
+function toggleCard(id) {
+  document.getElementById(`body-${id}`).classList.toggle('open');
+}
+
+// ===================== CALENDRIER =====================
+function afficherCalendrier() {
+  const moisNoms = ['','Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const now = new Date();
+  const moisActuel = now.getMonth() + 1;
+  const jourActuel = now.getDate();
+  
+  let html = '';
+  for (let i = 0; i < 4; i++) {
+    const m = ((moisActuel - 1 + i) % 12) + 1;
+    const events = CALENDRIER_SAISONNIER.filter(e => e.mois === m);
+    if (events.length === 0) continue;
+    
+    const isCurrent = i === 0;
+    
+    html += `<div class="cal-month">
+      <div class="cal-month-title">${isCurrent ? '📍 ' : ''}${moisNoms[m]}${isCurrent ? ' (ce mois-ci)' : ''}</div>`;
+    
+    // Sort by day
+    events.sort((a,b) => (a.jour||1) - (b.jour||1));
+    
+    events.forEach(e => {
+      const jour = e.jour || 1;
+      const isPast = isCurrent && jour < jourActuel;
+      const isNow = isCurrent && Math.abs(jour - jourActuel) <= 3;
+      const cls = isPast ? 'passé' : isNow ? 'maintenant' : '';
+      const dateStr = `${jour} ${moisNoms[m]}`;
+      html += `<div class="cal-event ${cls}">
+        <span class="cal-event-emoji">${e.emoji}</span>
+        <div>
+          <div class="cal-event-plante">${e.plante} <span style="font-size:0.7rem;color:var(--gris);font-weight:normal">— ${dateStr}</span></div>
+          <div class="cal-event-desc">${e.action}</div>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+  }
+  document.getElementById('calendrier-content').innerHTML = html || '<p style="color:var(--gris);padding:20px">Aucun événement prévu.</p>';
+}
+
+// ===================== JOURNAL GLOBAL =====================
+function afficherJournalGlobal() {
+  // Regrouper toutes les entrées
+  let toutesEntrees = [];
+  plantes.forEach(p => {
+    (p.journal || []).forEach(j => {
+      toutesEntrees.push({ ...j, planteNom: p.nom, planteEmoji: p.emoji });
+    });
+    (p.historique || []).forEach(h => {
+      toutesEntrees.push({ date: h.date, type: 'arrosage', note: `${h.litres > 0 ? h.litres + 'L' : 'Arrosé'}`, planteNom: p.nom, planteEmoji: p.emoji });
+    });
+  });
+  toutesEntrees.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  if (toutesEntrees.length === 0) {
+    document.getElementById('journal-global').innerHTML = '<p style="color:var(--gris);padding:20px;text-align:center">Aucune entrée pour le moment.<br>Commencez à noter vos observations !</p>';
+    return;
+  }
+
+  let html = '';
+  let dernierDate = '';
+  toutesEntrees.slice(0, 50).forEach(e => {
+    const dateStr = new Date(e.date).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+    if (dateStr !== dernierDate) {
+      if (dernierDate) html += '</div>';
+      html += `<div class="section-title" style="margin-top:16px">${dateStr}</div><div>`;
+      dernierDate = dateStr;
+    }
+    html += `<div class="journal-entry">
+      <span class="je-type ${e.type}">${typeLabel(e.type)}</span>
+      <strong>${e.planteEmoji} ${e.planteNom}</strong> — ${e.note}<br>
+      <span class="je-date">${formatDate(e.date)}</span>
+    </div>`;
+  });
+  if (dernierDate) html += '</div>';
+  document.getElementById('journal-global').innerHTML = html;
+}
+
+// ===================== ACTIONS =====================
+function marquerArrose(id, litres) {
+  const plante = plantes.find(p => p.id === id);
+  if (!plante) return;
+  const now = new Date().toISOString();
+  plante.lastWater = now;
+  if (!plante.historique) plante.historique = [];
+  plante.historique.push({ date: now, litres });
+  if (plante.historique.length > 30) plante.historique.shift();
+  sauvegarder();
+  afficherPlantes();
+  setTimeout(() => { const b = document.getElementById(`body-${id}`); if (b) b.classList.add('open'); }, 50);
+}
+
+// ===================== JOURNAL =====================
+let selectedType = 'observation';
+
+function selectType(btn) {
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedType = btn.dataset.type;
+  document.getElementById('j-adaptation-group').style.display = selectedType === 'rempotage' ? 'block' : 'none';
+}
+
+function openJournal(id) {
+  document.getElementById('j-plant-id').value = id;
+  document.getElementById('j-note').value = '';
+  selectedType = 'observation';
+  document.querySelectorAll('.type-btn').forEach(b => b.classList.remove('selected'));
+  document.querySelector('[data-type="observation"]').classList.add('selected');
+  document.getElementById('j-adaptation-group').style.display = 'none';
+  openModal('modal-journal');
+}
+
+function ajouterEntreeJournal() {
+  const id = parseInt(document.getElementById('j-plant-id').value);
+  const note = document.getElementById('j-note').value.trim();
+  if (!note) { alert('Veuillez saisir une note'); return; }
+
+  const plante = plantes.find(p => p.id === id);
+  if (!plante) return;
+  if (!plante.journal) plante.journal = [];
+
+  plante.journal.push({ date: new Date().toISOString(), type: selectedType, note });
+
+  // Si rempotage → déclencher période d'adaptation
+  if (selectedType === 'rempotage') {
+    const jours = parseInt(document.getElementById('j-adaptation-jours').value) || 30;
+    plante.adaptationJours = jours;
+    plante.adaptationDate = new Date().toISOString();
+  }
+
+  sauvegarder();
+  closeModal('modal-journal');
+  afficherPlantes();
+}
+
+// ===================== MODAL PLANTE =====================
+function openModalAjouter() {
+  document.getElementById('modal-plante-title').textContent = '➕ Ajouter une plante';
+  document.getElementById('f-id').value = '';
+  document.getElementById('btn-supprimer').style.display = 'none';
+  ['f-nom','f-latin','f-emoji','f-volume','f-freq','f-qte','f-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-adaptation').value = '0';
+  document.getElementById('f-lieu').value = 'pot';
+  document.getElementById('f-expo').value = 'soleil';
+  const preview = document.getElementById('f-photo-preview');
+  preview.innerHTML = '🌱';
+  preview.className = 'photo-preview-placeholder';
+  delete preview.dataset.photo;
+  document.getElementById('btn-suppr-photo-modal').style.display = 'none';
+  document.getElementById('f-photo-input').value = '';
+  openModal('modal-plante');
+}
+
+function openModalModifier(id) {
+  const p = plantes.find(pl => pl.id === id);
+  if (!p) return;
+  document.getElementById('modal-plante-title').textContent = '✏️ Modifier la plante';
+  document.getElementById('f-id').value = id;
+  document.getElementById('f-nom').value = p.nom;
+  document.getElementById('f-latin').value = p.latin || '';
+  document.getElementById('f-emoji').value = p.emoji;
+  document.getElementById('f-lieu').value = p.lieu;
+  document.getElementById('f-expo').value = p.expo;
+  document.getElementById('f-volume').value = p.volume || '';
+  document.getElementById('f-freq').value = p.frequence;
+  document.getElementById('f-qte').value = p.quantite;
+  document.getElementById('f-notes').value = p.notes || '';
+  document.getElementById('f-adaptation').value = joursAdaptationRestants(p);
+  document.getElementById('btn-supprimer').style.display = 'block';
+  // Afficher la photo existante
+  const preview = document.getElementById('f-photo-preview');
+  const existingPhoto = photos[id];
+  if (existingPhoto) {
+    preview.innerHTML = '';
+    const imgEl = document.createElement('img');
+    imgEl.src = existingPhoto; imgEl.className = 'photo-preview';
+    preview.appendChild(imgEl);
+    preview.className = 'photo-preview-container';
+    preview.dataset.photo = existingPhoto;
+    document.getElementById('btn-suppr-photo-modal').style.display = 'block';
+  } else {
+    preview.innerHTML = p.emoji || '🌱';
+    preview.className = 'photo-preview-placeholder';
+    delete preview.dataset.photo;
+    document.getElementById('btn-suppr-photo-modal').style.display = 'none';
+  }
+  openModal('modal-plante');
+}
+
+function sauvegarderPlante() {
+  const nom = document.getElementById('f-nom').value.trim();
+  if (!nom) { alert('Le nom est obligatoire'); return; }
+  const id = document.getElementById('f-id').value;
+  const adaptJours = parseInt(document.getElementById('f-adaptation').value) || 0;
+
+  if (id) {
+    const p = plantes.find(pl => pl.id === parseInt(id));
+    if (p) {
+      p.nom = nom;
+      p.latin = document.getElementById('f-latin').value.trim();
+      p.emoji = document.getElementById('f-emoji').value.trim() || p.emoji;
+      p.lieu = document.getElementById('f-lieu').value;
+      p.expo = document.getElementById('f-expo').value;
+      p.volume = parseFloat(document.getElementById('f-volume').value) || null;
+      p.frequence = parseInt(document.getElementById('f-freq').value) || 5;
+      p.quantite = parseFloat(document.getElementById('f-qte').value) || 1.0;
+      p.notes = document.getElementById('f-notes').value.trim();
+      if (adaptJours > 0) { p.adaptationJours = adaptJours; p.adaptationDate = new Date().toISOString(); }
+    }
+  } else {
+    const newId = Math.max(...plantes.map(p => p.id), 0) + 1;
+    plantes.push({
+      id: newId, nom,
+      latin: document.getElementById('f-latin').value.trim(),
+      emoji: document.getElementById('f-emoji').value.trim() || '🌱',
+      lieu: document.getElementById('f-lieu').value,
+      expo: document.getElementById('f-expo').value,
+      volume: parseFloat(document.getElementById('f-volume').value) || null,
+      frequence: parseInt(document.getElementById('f-freq').value) || 5,
+      quantite: parseFloat(document.getElementById('f-qte').value) || 1.0,
+      notes: document.getElementById('f-notes').value.trim(),
+      lastWater: null, historique: [], journal: [],
+      adaptationJours: adaptJours,
+      adaptationDate: adaptJours > 0 ? new Date().toISOString() : null
+    });
+  }
+  // Sauvegarder la photo si présente
+  const preview = document.getElementById('f-photo-preview');
+  const targetId = id ? parseInt(id) : (Math.max(...plantes.map(p => p.id), 0));
+  if (preview.dataset.photo) {
+    photos[targetId] = preview.dataset.photo;
+    sauvegarderPhotos();
+  }
+  sauvegarder();
+  afficherPlantes();
+  closeModal('modal-plante');
+}
+
+function supprimerPlante() {
+  const id = parseInt(document.getElementById('f-id').value);
+  if (!id) return;
+  const p = plantes.find(pl => pl.id === id);
+  if (!p) return;
+  if (!confirm(`Supprimer "${p.nom}" ?`)) return;
+  plantes = plantes.filter(pl => pl.id !== id);
+  sauvegarder();
+  afficherPlantes();
+  closeModal('modal-plante');
+}
+
+// ===================== NAVIGATION =====================
+function showPage(page) {
+  currentPage = page;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  document.querySelectorAll('.nav-tab')[['plantes','calendrier','journal','capteurs','parametres'].indexOf(page)].classList.add('active');
+  document.getElementById('fab-btn').style.display = page === 'plantes' ? 'flex' : 'none';
+
+  if (page === 'calendrier') afficherCalendrier();
+  if (page === 'journal') afficherJournalGlobal();
+  if (page === 'capteurs') afficherPageCapteurs();
+  if (page === 'parametres') afficherResumeDonnees();
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+function closeModalOutside(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
+
+// ===================== SPLASH =====================
+function dismissSplash() {
+  const splash = document.getElementById('splash');
+  if (splash && !splash._dismissed) {
+    splash._dismissed = true;
+    splash.classList.add('fade-out');
+    setTimeout(() => { if (splash.parentNode) splash.remove(); }, 800);
+  }
+}
+// Fallback absolu
+setTimeout(() => { dbg('⏱️ Fallback splash 4s'); dismissSplash(); }, 4000);
+
+
+// ===================== EXPORT / IMPORT DONNÉES =====================
+function exporterDonnees() {
+  const data = {
+    version: 3,
+    exportDate: new Date().toISOString(),
+    plantes: plantes,
+    capteurs: capteurs,
+    photos: photos,
+  };
+  const json = JSON.stringify(data, null, 2);
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `monjardin_${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+  
+  // Sauvegarder la date d'export
+  localStorage.setItem('derniere_export', new Date().toISOString());
+  afficherResumeDonnees();
+}
+
+function importerDonnees(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.plantes) throw new Error('Format invalide');
+      
+      // Importer les données
+      plantes = data.plantes;
+      if (data.capteurs) capteurs = data.capteurs;
+      if (data.photos) photos = data.photos;
+      
+      // Sauvegarder tout
+      sauvegarder();
+      sauvegarderCapteurs();
+      sauvegarderPhotos();
+      localStorage.setItem('derniere_import', new Date().toISOString());
+      
+      document.getElementById('import-status').textContent = 
+        `✅ Import réussi — ${plantes.length} plantes restaurées !`;
+      
+      afficherPlantes();
+      afficherResumeDonnees();
+    } catch(err) {
+      document.getElementById('import-status').textContent = 
+        `❌ Erreur : fichier invalide (${err.message})`;
+    }
+  };
+  reader.readAsText(file);
+}
+
+function reinitialiserDonnees() {
+  if (!confirm('⚠️ Supprimer TOUTES vos données (arrosages, notes, photos) ? Cette action est irréversible.')) return;
+  localStorage.removeItem('plantes_v2');
+  localStorage.removeItem('capteurs_v1');
+  localStorage.removeItem('photos_v1');
+  plantes = JSON.parse(JSON.stringify(PLANTES_DEFAULT));
+  capteurs = {};
+  photos = {};
+  sauvegarder();
+  afficherPlantes();
+  afficherResumeDonnees();
+  alert('✅ Données réinitialisées.');
+}
+
+function afficherResumeDonnees() {
+  const nbArrosages = plantes.reduce((sum, p) => sum + (p.historique?.length || 0), 0);
+  const nbNotes = plantes.reduce((sum, p) => sum + (p.journal?.length || 0), 0);
+  const nbPhotos = Object.keys(photos).length;
+  const nbCapteurs = Object.keys(capteurs).length;
+  const derniereExport = localStorage.getItem('derniere_export');
+  const derniereImport = localStorage.getItem('derniere_import');
+
+  const resume = document.getElementById('resume-donnees');
+  if (resume) resume.innerHTML = `
+    🪴 ${plantes.length} plantes enregistrées<br>
+    💧 ${nbArrosages} arrosages dans l'historique<br>
+    📝 ${nbNotes} notes dans le journal<br>
+    📷 ${nbPhotos} photos<br>
+    📡 ${nbCapteurs} capteurs configurés
+  `;
+
+  const sauv = document.getElementById('derniere-sauvegarde');
+  if (sauv) {
+    let txt = '';
+    if (derniereExport) txt += `📤 Export : ${new Date(derniereExport).toLocaleDateString('fr-FR', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}<br>`;
+    if (derniereImport) txt += `📥 Import : ${new Date(derniereImport).toLocaleDateString('fr-FR', {day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})}`;
+    if (!txt) txt = 'Aucune sauvegarde externe effectuée.';
+    sauv.innerHTML = txt;
+  }
+}
+
+
+// ===================== FIREBASE AUTH & SYNC =====================
+let currentUser = null;
+
+async function connecterGoogle() {
+  if (!window.fbConnecterGoogle) {
+    document.getElementById('login-error').textContent = 'Chargement en cours, réessayez dans 2 secondes...';
+    return;
+  }
+  await window.fbConnecterGoogle();
+}
+
+async function deconnecter() {
+  if (!confirm('Se déconnecter ?')) return;
+  try {
+    if (window.fbDeconnecter) await window.fbDeconnecter();
+    currentUser = null;
+    document.getElementById('user-bar').style.display = 'none';
+    document.getElementById('user-name').textContent = '';
+    document.getElementById('user-avatar').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'block';
+    document.getElementById('login-error').textContent = '';
+  } catch(e) {
+    alert('Erreur : ' + e.message);
+  }
+}
+
+async function chargerDepuisFirebase(userId) {
+  // Données déjà chargées par le module Firebase
+  if (window._plantesFromFirebase) {
+    plantes = window._plantesFromFirebase;
+    delete window._plantesFromFirebase;
+  }
+  if (window._capteursFromFirebase) {
+    capteurs = window._capteursFromFirebase;
+    delete window._capteursFromFirebase;
+  }
+  photos = JSON.parse(localStorage.getItem(`photos_${userId}`) || '{}');
+  sauvegarder();
+  sauvegarderCapteurs();
+}
+
+async function sauvegarderFirebase() {
+  const user = window._currentUser || currentUser;
+  if (!user || !window.fbSauvegarder) return;
+  const dataToSave = {
+    plantes,
+    capteurs,
+    lastUpdate: new Date().toISOString(),
+    userId: user.uid
+  };
+  await window.fbSauvegarder(user.uid, dataToSave);
+  localStorage.setItem(`photos_${user.uid}`, JSON.stringify(photos));
+}
+
+function sauvegarder() {
+  localStorage.setItem('plantes_v2', JSON.stringify(plantes));
+  sauvegarderFirebase(); // async, sync Firebase
+}
+
+function initFirebaseAuth() {
+  let attempts = 0;
+  const tryInit = setInterval(() => {
+    attempts++;
+    if (!window._firebase) {
+      if (attempts > 25) { // 5 secondes
+        clearInterval(tryInit);
+        console.warn('Firebase non disponible — mode hors ligne');
+        document.getElementById('login-screen').style.display = 'none';
+        dismissSplash();
+        afficherPlantes();
+      }
+      return;
+    }
+    clearInterval(tryInit);
+
+    const { auth, onAuthStateChanged, getRedirectResult } = window._firebase;
+
+    // Vérifier si on revient d'une redirection Google
+    try {
+      const result = await getRedirectResult(auth);
+      if (result?.user) {
+        console.log('Connexion via redirect réussie:', result.user.displayName);
+      }
+    } catch(e) {
+      console.error('Erreur redirect:', e.message);
+      const errEl = document.getElementById('login-error');
+      if (errEl) errEl.textContent = 'Erreur de connexion : ' + e.message;
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        currentUser = user;
+        document.getElementById('login-screen').style.display = 'none';
+
+        // User bar
+        const userBar = document.getElementById('user-bar');
+        userBar.style.display = 'flex';
+        document.getElementById('user-name').textContent = user.displayName || user.email;
+        if (user.photoURL) {
+          const avatar = document.getElementById('user-avatar');
+          avatar.src = user.photoURL;
+          avatar.style.display = 'block';
+        }
+
+        await chargerDepuisFirebase(user.uid);
+        afficherPlantes();
+        dismissSplash();
+
+      } else {
+        currentUser = null;
+        document.getElementById('login-screen').style.display = 'block';
+        document.getElementById('user-bar').style.display = 'none';
+        dismissSplash();
+      }
+    });
+  }, 200);
+}
+
+// ===================== MIGRATION V1 → V2 =====================
+function migrerV1() {
+  const v1 = localStorage.getItem('plantes');
+  const v2 = localStorage.getItem('plantes_v2');
+  if (!v1 || v2) return;
+  try {
+    const plantesV1 = JSON.parse(v1);
+    const plantesV2 = JSON.parse(JSON.stringify(PLANTES_DEFAULT));
+    plantesV1.forEach(p1 => {
+      const match = plantesV2.find(p2 => p2.nom === p1.nom);
+      if (match) {
+        match.lastWater = p1.lastWater || null;
+        match.historique = p1.historique || [];
+        match.journal = p1.journal || [];
+        match.notes = p1.notes || match.notes;
+      }
+    });
+    localStorage.setItem('plantes_v2', JSON.stringify(plantesV2));
+    plantes = plantesV2;
+    console.log('Migration V1 → V2 OK');
+  } catch(e) { console.error('Erreur migration:', e); }
+}
+
+
+function dbg(msg) {
+  const el = document.getElementById('debug-log');
+  if (el) el.innerHTML += new Date().toLocaleTimeString() + ' — ' + msg + '<br>';
+  console.log(msg);
+}
+window.onerror = function(msg, src, line) {
+  dbg('❌ ERROR: ' + msg + ' (line ' + line + ')');
+};
+
+// ===================== INIT =====================
+dbg('🚀 Script démarré');
+migrerV1();
+dbg('✅ Migration OK');
+document.getElementById('date-display').textContent = new Date().toLocaleDateString('fr-FR', {
+  weekday: 'long', day: 'numeric', month: 'long'
+});
+
+// Auto-rappel export si > 7 jours sans sauvegarde
+function verifierRappelSauvegarde() {
+  const derniereExport = localStorage.getItem('derniere_export');
+  if (!derniereExport) return; // Pas encore exporté, pas de rappel
+  const jours = Math.floor((Date.now() - new Date(derniereExport).getTime()) / 86400000);
+  if (jours >= 7) {
+    const alertes = document.getElementById('alertes');
+    if (alertes && !alertes.querySelector('.alerte-backup')) {
+      alertes.innerHTML += `<div class="alerte-pluie alerte-backup" style="cursor:pointer" onclick="showPage('parametres')">
+        💾 Dernière sauvegarde il y a ${jours} jours — pensez à exporter vos données !
+      </div>`;
+    }
+  }
+}
+
+dbg('🔥 Init Firebase Auth...');
+initFirebaseAuth();
+dbg('✅ initFirebaseAuth appelé');
+
+// Démarrer météo et capteurs
+dbg('🌤️ Chargement météo...');
+chargerMeteo();
+rafraichirCapteursReels();
+verifierRappelSauvegarde();
+setInterval(rafraichirCapteursReels, 60000);
+</script>
+
+<div id="debug-overlay" style="position:fixed;bottom:0;left:0;right:0;background:rgba(0,0,0,0.85);color:#0f0;font-family:monospace;font-size:11px;padding:8px;z-index:99999;max-height:200px;overflow-y:auto">
+  <div id="debug-log"></div>
+</div>
+
+</body>
+</html>
