@@ -624,7 +624,7 @@
 
 
 <!-- ÉCRAN DE CONNEXION -->
-<div id="login-screen" style="display:none">
+<div id="login-screen" style="display:block">
   <div style="position:fixed;inset:0;background:linear-gradient(160deg,#1a3d0f,#2d5a27);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9998;padding:24px">
     <div style="font-size:4rem;margin-bottom:16px">🌿</div>
     <div style="font-family:'Playfair Display',serif;font-size:2rem;color:white;margin-bottom:8px">Mon Jardin</div>
@@ -635,34 +635,6 @@
     </button>
     <div id="login-error" style="color:#ffb3b3;font-size:0.82rem;margin-top:16px;text-align:center"></div>
   </div>
-</div>
-
-<!-- SPLASH SCREEN -->
-<script>
-// Fallback IMMÉDIAT - indépendant de tout le reste
-window.addEventListener('DOMContentLoaded', function() {
-  setTimeout(function() {
-    var s = document.getElementById('splash');
-    if (s) { s.style.opacity='0'; s.style.transition='opacity 0.5s'; setTimeout(function(){ if(s.parentNode) s.parentNode.removeChild(s); }, 500); }
-    var ls = document.getElementById('login-screen');
-    if (ls && !window._currentUser) ls.style.display = 'block';
-  }, 3000);
-});
-</script>
-<div id="splash">
-  <div class="splash-leaves">
-    <span class="splash-leaf" style="top:5%;left:5%;animation-delay:0s;font-size:5rem">🌴</span>
-    <span class="splash-leaf" style="top:10%;right:8%;animation-delay:0.5s;font-size:3rem">🌿</span>
-    <span class="splash-leaf" style="top:30%;left:2%;animation-delay:1s;font-size:3.5rem">🍃</span>
-    <span class="splash-leaf" style="bottom:25%;right:3%;animation-delay:0.3s;font-size:4rem">🌱</span>
-    <span class="splash-leaf" style="bottom:10%;left:10%;animation-delay:0.8s;font-size:3rem">🍋</span>
-    <span class="splash-leaf" style="top:55%;right:12%;animation-delay:1.2s;font-size:2.5rem">🌺</span>
-    <span class="splash-leaf" style="top:70%;left:20%;animation-delay:0.6s;font-size:3rem">🌵</span>
-    <span class="splash-leaf" style="bottom:5%;right:20%;animation-delay:0.9s;font-size:2rem">🫒</span>
-  </div>
-  <div class="splash-icon">🌿</div>
-  <div class="splash-title">Mon Jardin</div>
-  <div class="splash-subtitle">Chargement de vos plantes...</div>
 </div>
 
 <!-- APPLE TOUCH ICON (PWA) -->
@@ -1237,12 +1209,10 @@ async function chargerMeteoAvecCoords(lat, lon, ville) {
     }
     document.getElementById('alertes').innerHTML = alertesHTML;
     afficherPlantes();
-    dismissSplash();
-  } catch(e) {
+    } catch(e) {
     document.getElementById('meteo-bar').innerHTML = `<span style="opacity:0.7;padding:8px 16px">Météo indisponible</span>`;
     afficherPlantes();
-    dismissSplash();
-  }
+    }
 }
 
 async function chargerMeteo() {
@@ -1794,24 +1764,9 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 function closeModalOutside(e, id) { if (e.target === document.getElementById(id)) closeModal(id); }
 
 // ===================== SPLASH =====================
-function dismissSplash() {
-  const splash = document.getElementById('splash');
-  if (splash && !splash._dismissed) {
-    splash._dismissed = true;
-    splash.classList.add('fade-out');
-    setTimeout(() => { if (splash.parentNode) splash.remove(); }, 800);
-  }
-}
-// Fallback absolu — splash disparaît après 4s max quoi qu'il arrive
-setTimeout(() => {
-  dismissSplash();
-  if (!window._currentUser) {
-    const ls = document.getElementById('login-screen');
-    if (ls) ls.style.display = 'block';
-  }
-}, 4000);
+
 // Fallback absolu
-setTimeout(() => { console.log('⏱️ Fallback splash 4s'); dismissSplash(); }, 4000);
+setTimeout(() => { console.log('⏱️ Fallback splash 4s');  }, 4000);
 
 
 // ===================== EXPORT / IMPORT DONNÉES =====================
@@ -1983,7 +1938,6 @@ function sauvegarder() {
 function initFirebaseAuth() {
   // Fallback 5s si Firebase ne répond pas
   setTimeout(() => {
-    dismissSplash();
     if (!window._currentUser) {
       const ls = document.getElementById('login-screen');
       if (ls) ls.style.display = 'block';
@@ -2014,20 +1968,17 @@ function initFirebaseAuth() {
       const ls = document.getElementById('login-screen');
       if (ls) ls.style.display = 'block';
     }
-    dismissSplash();
-  };
+    };
 
   window._onFirebaseSignOut = () => {
     console.log('👋 signOut callback');
     currentUser = null;
-    dismissSplash();
     document.getElementById('login-screen').style.display = 'block';
   };
 
   // Fallback absolu : si Firebase ne répond pas en 5s, afficher login
   setTimeout(() => {
     console.log('⏱️ Fallback 5s - firebaseReady=' + window._firebaseReady);
-    dismissSplash();
     if (!currentUser) {
       document.getElementById('login-screen').style.display = 'block';
     }
