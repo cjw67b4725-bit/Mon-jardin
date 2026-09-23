@@ -18,8 +18,10 @@ Tu relis du VBA pour Jacquet Lyon avant import dans le classeur. **Strict** : pa
 
 Commande de vérification :
 ```bash
-file -b <fichier.bas>  # doit dire "... Windows-1252"
-xxd -l 200 <fichier.bas> | grep "0d 0a"  # doit voir CRLF
+iconv -f utf-8 -t utf-8 <fichier.bas> >/dev/null 2>&1 && echo "UTF-8 ou ASCII pur"  # si accents présents : doit ÉCHOUER (sinon c'est de l'UTF-8)
+iconv -f cp1252 -t utf-8 <fichier.bas> >/dev/null && echo "cp1252 OK"                # doit réussir
+file -b <fichier.bas>  # doit dire "ASCII text" ou "ISO-8859 text", "with CRLF line terminators"
+grep -c $'[^\r]$' <fichier.bas>  # lignes sans CR : doit être 0
 ```
 
 ### 2. Architecture 3 couches — aucun mélange
@@ -72,13 +74,14 @@ fso.CreateFolder "C:\test\🔒"
 ' → Ø devient ?, Résultat: zéro lignes parsées
 
 ' BON :
-Process.Create "poppler.exe -enc Latin1 ..."
+Shell "pdftotext.exe -enc Latin1 ..."  ' ou CreateObject("WScript.Shell").Run ...
 
 ' MAUVAIS : ø hardcodé en UTF-8
 sOmega = "ø"  → UTF-8 → envoyé en Latin-1 → ?
 
 ' BON :
-Const sOmega = Chr(248)  ' Latin-1
+Dim sOmega As String
+sOmega = Chr(248)  ' Latin-1 (une Const ne peut pas appeler Chr)
 
 ' MAUVAIS : Feuille nommée "Historique"
 ' → Erreur sur .Sheets("Historique")
